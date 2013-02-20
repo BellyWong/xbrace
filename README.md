@@ -22,4 +22,4 @@ Xbrace will back up your snippets file to your root folder (/). It will not over
 Limitations
 ------------
 
-Use at your own risk. I haven’t tested this thoroughly. Also, when a new version of Xcode comes out, you need to manually delete the old backup to have new snippets file backed up. I’ll try and think of a more elegant way of handling this.
+Use at your own risk. I haven’t tested this thoroughly. Also, when a new version of Xcode comes out, you need to manually delete the old backup to have new snippets file backed up. I plan to implement a more elegant way of handling this.
