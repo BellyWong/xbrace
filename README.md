@@ -17,7 +17,7 @@ That’s it!
 A note on backups:
 ------
 
-Xbrace will back up your snippets file to your home folder (~). It will not overwrite existing backups so you cannot accidentally overwrite the backup by running it multiple times (although there is no reason to do that, of course).
+Xbrace will back up your snippets file to your root folder (/). It will not overwrite existing backups so you cannot accidentally overwrite the backup by running it multiple times (although there is no reason to do that, of course).
 
 Limitations
 ------------

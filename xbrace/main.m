@@ -18,7 +18,7 @@
 #import <Foundation/Foundation.h>
 
 #define kSystemCodeSnippetsFilePath   @"/Applications/Xcode.app/Contents/PlugIns/IDECodeSnippetLibrary.ideplugin/Contents/Resources/SystemCodeSnippets.codesnippets"
-
+#define kSystemCodeSnippetsFileBackupPath       @"/SystemCodeSnippets.codesnippets"
 
 void output (NSString *format, ...) {
     //
@@ -68,14 +68,10 @@ NSString *replaceRegexpWithTemplateForString(NSString *pattern, NSString *templa
 
 void backupTheSnippetsFileIfNecessary()
 {
-    
-    // The path to back up the SystemCodeSnippets file to.
-    NSString *snippetsBackupFilePath = [NSHomeDirectory() stringByAppendingString:@"/SystemCodeSnippets.codesnippets"];
-    
-    if (![[NSFileManager defaultManager] fileExistsAtPath:snippetsBackupFilePath])
+    if (![[NSFileManager defaultManager] fileExistsAtPath:kSystemCodeSnippetsFileBackupPath])
     {
         NSError *error = nil;
-        if ([[NSFileManager defaultManager] copyItemAtPath:kSystemCodeSnippetsFilePath toPath:snippetsBackupFilePath error:&error])
+        if ([[NSFileManager defaultManager] copyItemAtPath:kSystemCodeSnippetsFilePath toPath:kSystemCodeSnippetsFileBackupPath error:&error])
         {
             output(@"\t★ \033[94mBacked up the Xcode System Code Snippets file.\033[39m");
         }
@@ -86,7 +82,7 @@ void backupTheSnippetsFileIfNecessary()
     }
     else
     {
-        NSLog(@"File exists at %@", snippetsBackupFilePath);
+        NSLog(@"File exists at %@", kSystemCodeSnippetsFileBackupPath);
     }
 }
 
