@@ -80,10 +80,6 @@ void backupTheSnippetsFileIfNecessary()
             exitWithError(error, @"backing up");
         }
     }
-    else
-    {
-        NSLog(@"File exists at %@", kSystemCodeSnippetsFileBackupPath);
-    }
 }
 
 void updateTheXcodeSystemCodeSnippetsFile()
