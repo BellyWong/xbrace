@@ -242,6 +242,7 @@
 				A7ED5C1316D4204F0017D4D4 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

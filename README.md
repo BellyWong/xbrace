@@ -9,7 +9,8 @@ Usage:
 ------
 
   1. Download xbrace and copy it to /usr/local/bin or somewhere else that’s cosy (and on your path)
-  2. ```xbrace```
+  2. ```sudo xbrace```
+  3. Enter your administrative password when prompted.
 
 That’s it!
 

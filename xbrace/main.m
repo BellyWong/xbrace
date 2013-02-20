@@ -20,9 +20,28 @@
 #define kSystemCodeSnippetsFilePath   @"/Applications/Xcode.app/Contents/PlugIns/IDECodeSnippetLibrary.ideplugin/Contents/Resources/SystemCodeSnippets.codesnippets"
 
 
-void showErrorMessage(NSError *error, NSString *errorMessage)
+void output (NSString *format, ...) {
+    //
+    // This method courtesy of http://cocoaheads.byu.edu/wiki/different-nslog
+    //
+    if (format == nil) {
+        printf("nil\n");
+        return;
+    }
+    // Get a reference to the arguments that follow the format parameter
+    va_list argList;
+    va_start(argList, format);
+    // Perform format string argument substitution, reinstate %% escapes, then print
+    NSString *s = [[NSString alloc] initWithFormat:format arguments:argList];
+    printf("%s\n", [[s stringByReplacingOccurrencesOfString:@"%%" withString:@"%%%%"] UTF8String]);
+    va_end(argList);
+}
+
+
+void exitWithError(NSError *error, NSString *errorMessage)
 {
-    NSLog(@"Error %@ your Xcode System Code Snippets file:\n%@", errorMessage, [error localizedDescription]);
+    output(@"\t\033[7m⛔  Error %@ your Xcode System Code Snippets file.\033[0m\n\n\t\033[31m%@\033[39m", errorMessage, [error localizedDescription]);
+    exit(EXIT_FAILURE);
 }
 
 
@@ -34,15 +53,15 @@ NSString *replaceRegexpWithTemplateForString(NSString *pattern, NSString *templa
     {
         NSRange theWholeThing = NSMakeRange(0, [string length]);
         
-        NSUInteger numberOfMatches = [regex numberOfMatchesInString:string options:0 range:theWholeThing];
-        NSLog(@"Number of matches: %lu", numberOfMatches);
+        // NSUInteger numberOfMatches = [regex numberOfMatchesInString:string options:0 range:theWholeThing];
+        // NSLog(@"Number of matches: %lu", numberOfMatches);
         
         return [regex stringByReplacingMatchesInString:string options:0 range:theWholeThing withTemplate:template];
     }
     else
     {
-        NSLog(@"Error in regular expression: %@\n%@", pattern, [error localizedDescription]);
-        return nil;
+        output(@"> Error in regular expression: %@\n\033[31m%@\033[39m", pattern, [error localizedDescription]);
+        exit(EXIT_FAILURE);
     }
 }
 
@@ -55,47 +74,60 @@ void backupTheSnippetsFileIfNecessary()
     
     if (![[NSFileManager defaultManager] fileExistsAtPath:snippetsBackupFilePath])
     {
-        // A backup does not exist, make one.
-        NSLog(@"Backing up the Xcode System Code Snippets file…");
-
         NSError *error = nil;
         if ([[NSFileManager defaultManager] copyItemAtPath:kSystemCodeSnippetsFilePath toPath:snippetsBackupFilePath error:&error])
         {
-            NSLog(@"…done.");
+            output(@"\t★ \033[94mBacked up the Xcode System Code Snippets file.\033[39m");
         }
         else
         {
-            showErrorMessage(error, @"backing up");
+            exitWithError(error, @"backing up");
         }
+    }
+    else
+    {
+        NSLog(@"File exists at %@", snippetsBackupFilePath);
     }
 }
 
-
 void updateTheXcodeSystemCodeSnippetsFile()
 {
-    NSLog(@"Updating the Xcode System Code Snippets file…");
-    
     NSError *error = nil;
     NSString *systemCodeSnippets = [[NSString alloc] initWithContentsOfFile:kSystemCodeSnippetsFilePath encoding:NSUTF8StringEncoding error:&error];
     if (systemCodeSnippets)
     {
+        // Ugly code ahead…
+        
+        // Fix the } else {, etc. patterns.
         NSString *elsesEtc = replaceRegexpWithTemplateForString(@"\\} (.*?) \\{", @"\\}\n$1\n\\{", systemCodeSnippets);
         
         // Replace curly brackets on line ends with ones on the next line.
         NSString *bracesOnNewLine = replaceRegexpWithTemplateForString(@"[ ]\\{", @"\n{", elsesEtc);
         
-        // Note: 2 levels of indentation (8 spaces) is currently the max in the file; hardcoded for that.
+        // 2 levels of indentation (8 spaces) is currently the max in the file; hardcoded for that.
         NSString *fixedSecondLevelIndentation = replaceRegexpWithTemplateForString(@"^\\{\n        ", @"    {\n        ", bracesOnNewLine);
         
+        // Ah, that remaining else…
         NSString *fixedThatElse = replaceRegexpWithTemplateForString(@"^else\n    \\{", @"    else\n    \\{", fixedSecondLevelIndentation);
         
         NSString *finalVersion = fixedThatElse;
         
-        NSLog(@"Final version: %@", finalVersion);
+        // NSLog(@"Final version: %@", finalVersion);
+        
+        // Save it
+        if ([finalVersion writeToFile:kSystemCodeSnippetsFilePath atomically:YES encoding:NSUTF8StringEncoding error:&error])
+        {
+            output(@"\t★ Yay, your Xcode System Code Snippets file has been updated!");
+            output(@"\t★ \033[7mPlease restart Xcode\033[0m and your braces should now be on the next line.\n\n");
+        }
+        else
+        {
+            exitWithError(error, @"saving");
+        }
     }
     else
     {
-        showErrorMessage(error, @"reading");
+        exitWithError(error, @"reading");
     }    
 }
 
@@ -103,9 +135,11 @@ void updateTheXcodeSystemCodeSnippetsFile()
 int main(int argc, const char * argv[])
 {
     @autoreleasepool {
+        output(@"\n\tXbrace v0.0.1 by Aral Balkan\n\t____________________________\n");
+        
         backupTheSnippetsFileIfNecessary();
         updateTheXcodeSystemCodeSnippetsFile();
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
 
